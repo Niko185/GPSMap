@@ -31,7 +31,7 @@ class MainActivity : AppCompatActivity() {
                     openFragment(TrailsFragment.newInstance())
                 }
                 R.id.settings -> {
-                    openFragment(SettingsFragment.newInstance())
+                    openFragment(SettingsFragment())
                 }
             }
                 true

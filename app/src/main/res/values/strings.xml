@@ -3,6 +3,12 @@
     <string name="navigation">Navigation</string>
     <string name="trails">Trails</string>
     <string name="settings">Settings</string>
+    <string name="main_settings">Main settings</string>
+    <string name="time_update">Time update</string>
+    <string name="time_update_summary">Location time update</string>
+    <string name="color_settings">Color settings</string>
+    <string name="color">Color</string>
+    <string name="color_summary">Choice color navigation line</string>
 
 
 </resources>

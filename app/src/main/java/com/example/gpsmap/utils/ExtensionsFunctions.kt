@@ -1,8 +1,10 @@
 package com.example.gpsmap.utils
 
+import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.gpsmap.R
 
@@ -24,6 +26,14 @@ fun Fragment.openFragment(fragment: Fragment) {
         .replace(R.id.placeHolder, fragment)
         .commit()
 }
+
+fun Fragment.checkPermission(namePermission: String): Boolean {
+    return when(PackageManager.PERMISSION_GRANTED) {
+         ContextCompat.checkSelfPermission(activity as AppCompatActivity, namePermission) -> true
+              else -> false
+        }
+    }
+
 
 
 fun AppCompatActivity.showErrorLog(tag: String, text: String){

@@ -15,20 +15,28 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.MutableLiveData
 import com.example.gpsmap.R
 import com.example.gpsmap.databinding.FragmentMainBinding
 import com.example.gpsmap.service.WalkingService
 import com.example.gpsmap.utils.checkPermission
 import com.example.gpsmap.utils.dialog.DialogGps
 import com.example.gpsmap.utils.showToast
+import com.example.gpsmap.utils.time.TimeManager
 import org.osmdroid.config.Configuration
 import org.osmdroid.library.BuildConfig
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
+import java.util.*
+
 class MainFragment : Fragment() {
     private var isServiceNowRunning: Boolean = false
+    private var timer: Timer? = null
+    private var launchTimeMyTrail = 0L
+    private var mutableTimerDataView = MutableLiveData<String>()
     private lateinit var binding: FragmentMainBinding
     private lateinit var permissionLauncherDialog : ActivityResultLauncher<Array<String>>
+
 
 
 
@@ -51,6 +59,7 @@ class MainFragment : Fragment() {
         registerCallbackPermissions()
         setOnClicks()
         checkStateWalkingService()
+        updateTextViewTimer()
     }
 
     override fun onResume() {
@@ -90,26 +99,31 @@ class MainFragment : Fragment() {
        } else {
            activity?.startService(Intent(activity, WalkingService::class.java))
        }
+       setImageStop()
+       WalkingService.launchTime = System.currentTimeMillis()
+       startTimer()
    }
 
     private fun stopWalkingService() {
         activity?.stopService(Intent(activity, WalkingService::class.java))
         setImagePlay()
+        timer?.cancel()
     }
 
     private fun checkStateWalkingService() {
         isServiceNowRunning = WalkingService.isRunningService
         if(isServiceNowRunning) {
             setImageStop()
-        } else setImagePlay()
+            startTimer()
+        }
     }
 
     private fun controllingWalkingService() {
         if(!isServiceNowRunning) {
             startWalkingService()
-            setImageStop()
-        } else stopWalkingService()
-
+        } else {
+            stopWalkingService()
+        }
         isServiceNowRunning = !isServiceNowRunning
     }
 
@@ -133,6 +147,46 @@ class MainFragment : Fragment() {
     private fun setImagePlay() {
         binding.fButtonStartStop.setImageResource(R.drawable.ic_play)
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private fun showCurrentTimeInTimer(): String {
+        var currentSystemTime = System.currentTimeMillis()
+         return "Time: ${TimeManager.getTime(currentSystemTime - launchTimeMyTrail)}"
+    }
+
+    private fun updateTextViewTimer() {
+        mutableTimerDataView.observe(viewLifecycleOwner) { timeNow ->
+            binding.tvTime.text = timeNow
+        }
+    }
+
+    private fun startTimer() {
+        timer?.cancel()
+
+        timer = Timer()
+        launchTimeMyTrail = WalkingService.launchTime
+        timer?.schedule(object : TimerTask(){
+            override fun run() {
+               activity?.runOnUiThread{ mutableTimerDataView.value = showCurrentTimeInTimer() }
+            }
+        }, 1, 1)
+    }
+
+
+
+
 
 
 

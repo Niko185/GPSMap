@@ -9,6 +9,12 @@
     <string name="color_settings">Color settings</string>
     <string name="color">Color</string>
     <string name="color_summary">Choice color navigation line</string>
+    <string name="connect_gps">GPS not found</string>
+    <string name="gps_summary">Do you want connect GPS?</string>
+    <string name="gps_button_positive">Yes</string>
+    <string name="gps_button_negative">No</string>
+    <string name="location_request_not_enable">You must provide permission to use the location</string>
+    <string name="walking_service_enable">Record trail enable</string>
 
 
 </resources>

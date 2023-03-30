@@ -34,8 +34,6 @@ fun Fragment.checkPermission(namePermission: String): Boolean {
         }
     }
 
-
-
 fun AppCompatActivity.showErrorLog(tag: String, text: String){
     Log.e(tag, text)
 }

@@ -14,29 +14,36 @@ import android.os.Looper
 import android.util.Log
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.gpsmap.R
 import com.example.gpsmap.activity.MainActivity
+import com.example.gpsmap.models.LocationModel
+import com.example.gpsmap.vm.MainViewModel
 import com.google.android.gms.location.*
+import org.osmdroid.util.GeoPoint
 
 class WalkingService : Service() {
     private var distance = 0.0f
     private var lastLocation: Location? = null
     private lateinit var locationProvider: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
+    private lateinit var geoPointList: ArrayList<GeoPoint>
+
 
     override fun onBind(p0: Intent?): IBinder? {
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        showNotificationWalkingService()
-        getUpdatesLocationInformation()
+        setNotificationWalkingService()
+        setUpdatesLocationInformation()
         isRunningService = true
         return START_STICKY
     }
 
     override fun onCreate() {
         super.onCreate()
+        geoPointList = ArrayList()
         initLocationProvider()
     }
 
@@ -56,7 +63,7 @@ class WalkingService : Service() {
 
 
 
-     private fun showNotificationWalkingService() {
+     private fun setNotificationWalkingService() {
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val notificationChannel = NotificationChannel(CHANNEL_ID_SERVICE, NAME_SERVICE, STATUS_SERVICE)
@@ -81,49 +88,54 @@ class WalkingService : Service() {
     }
 
 
+    private fun setUpdatesLocationInformation() {
+        // if not permission location -> not action, else get information
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return
+        } else
+            locationProvider.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
+    }
 
 
+    private fun initLocationProvider(){
+        locationProvider = LocationServices.getFusedLocationProviderClient(baseContext)
 
-
-
+        locationRequest = LocationRequest.create()
+        locationRequest.interval = 7000
+        locationRequest.fastestInterval = 5000
+        locationRequest.priority = Priority.PRIORITY_HIGH_ACCURACY
+    }
 
    private val locationCallback = object : LocationCallback(){
        override fun onLocationResult(locationResult: LocationResult) {
            super.onLocationResult(locationResult)
 
            getWalkingDistance(locationResult)
-
        }
     }
-    private fun initLocationProvider(){
-        locationRequest = LocationRequest.create()
-        locationRequest.interval = 7000
-        locationRequest.fastestInterval = 5000
-        locationRequest.priority = Priority.PRIORITY_HIGH_ACCURACY
-        locationProvider = LocationServices.getFusedLocationProviderClient(baseContext)
-    }
-
-    private fun getUpdatesLocationInformation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return
-        } else
-
-        locationProvider.requestLocationUpdates(
-            locationRequest,
-            locationCallback,
-            Looper.myLooper()
-        )
-    }
-
 
     private fun getWalkingDistance(locationResult: LocationResult) {
         val currentLocationPhone = locationResult.lastLocation
-        if(lastLocation != null && currentLocationPhone != null) {
-            if(currentLocationPhone.speed > 0.5) distance = distance + lastLocation?.distanceTo(currentLocationPhone)!!
+        if (lastLocation != null && currentLocationPhone != null) {
+            if (currentLocationPhone.speed >= 0.3) distance = distance + lastLocation?.distanceTo(currentLocationPhone)!!
+            geoPointList.add(GeoPoint(currentLocationPhone.latitude, currentLocationPhone.longitude))
+            val locModel = LocationModel(
+                currentLocationPhone.speed,
+                distance,
+                geoPointList
+                )
+            sendServiceDataOnFragment(locModel)
         } else
             lastLocation = currentLocationPhone
         Log.e("AAAAAAAAAA", "distance: $distance")
     }
+
+    private fun sendServiceDataOnFragment(locationModel: LocationModel) {
+        val intent = Intent(BROADCAST_KEY_REZERVATION_INTENT_NAME)
+        intent.putExtra(BROADCAST_KEY_REZERVATION_INTENT_DATA, locationModel)
+        LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
+    }
+
 
 
 
@@ -141,6 +153,8 @@ class WalkingService : Service() {
         const val CHANNEL_ID_SERVICE = "Channel_1"
         const val NAME_SERVICE = "Walking Service"
         const val STATUS_SERVICE = NotificationManager.IMPORTANCE_DEFAULT
+        const val BROADCAST_KEY_REZERVATION_INTENT_NAME = "location_model_intent"
+        const val BROADCAST_KEY_REZERVATION_INTENT_DATA = "location_model_intent_data"
 
         var isRunningService = false
         var launchTime = 0L

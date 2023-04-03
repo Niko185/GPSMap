@@ -1,8 +1,11 @@
 package com.example.gpsmap.fragment
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.Color
 import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
@@ -15,16 +18,23 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.MutableLiveData
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.gpsmap.R
 import com.example.gpsmap.databinding.FragmentMainBinding
+import com.example.gpsmap.models.LocationModel
 import com.example.gpsmap.service.WalkingService
 import com.example.gpsmap.utils.checkPermission
 import com.example.gpsmap.utils.dialog.DialogGps
+import com.example.gpsmap.utils.showErrorLog
 import com.example.gpsmap.utils.showToast
 import com.example.gpsmap.utils.time.TimeManager
+import com.example.gpsmap.vm.MainViewModel
 import org.osmdroid.config.Configuration
 import org.osmdroid.library.BuildConfig
+import org.osmdroid.util.GeoPoint
+import org.osmdroid.views.overlay.Polyline
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay
 import java.util.*
@@ -33,16 +43,11 @@ class MainFragment : Fragment() {
     private var isServiceNowRunning: Boolean = false
     private var timer: Timer? = null
     private var launchTimeMyTrail = 0L
-    private var mutableTimerDataView = MutableLiveData<String>()
     private lateinit var binding: FragmentMainBinding
     private lateinit var permissionLauncherDialog : ActivityResultLauncher<Array<String>>
-
-
-
-
-
-
-
+    private var polyLine: Polyline? = null
+    private var firstStart: Boolean = true
+    private val mainViewModel: MainViewModel by activityViewModels()
 
 
     override fun onCreateView(
@@ -60,6 +65,8 @@ class MainFragment : Fragment() {
         setOnClicks()
         checkStateWalkingService()
         updateTextViewTimer()
+        registerReceiver()
+        instanceMainViewModel()
     }
 
     override fun onResume() {
@@ -67,11 +74,11 @@ class MainFragment : Fragment() {
         checkPermissionForAllVersion()
     }
 
+    override fun onDetach() {
+        super.onDetach()
+        LocalBroadcastManager.getInstance(activity as AppCompatActivity).unregisterReceiver(receiver)
 
-
-
-
-
+    }
 
 
     private fun basicConnectOSM() {
@@ -83,13 +90,72 @@ class MainFragment : Fragment() {
         map.controller.setZoom(15.0)
         getMyLocationProvider()
         getMyLocationWithMarkerLayer()
+        initPolyline()
+    }
+
+    private fun initPolyline(){
+        polyLine = Polyline()
+        polyLine?.outlinePaint?.color = Color.BLUE
+
+
+    }
+
+    private fun addPoint(list: List<GeoPoint>) {
+        polyLine?.addPoint(list[list.size - 1])
+    }
+
+    private fun fillPolyline(list: List<GeoPoint>){
+        list.forEach {
+            polyLine?.addPoint(it)
+        }
+    }
+
+    private fun isServiceWorkingWhenOpenApplication(list: List<GeoPoint>) {
+         if(list.size  > 1 && firstStart){
+             fillPolyline(list)
+             firstStart = false
+        } else {
+            addPoint(list)
+        }
+
+    }
+
+
+
+    private fun getMyLocationProvider(): GpsMyLocationProvider {
+        val myLocationProvider = GpsMyLocationProvider(activity)
+        return myLocationProvider
+    }
+
+    private fun getMyLocationWithMarkerLayer() {
+        val myLocationLayer = MyLocationNewOverlay(getMyLocationProvider(), binding.map)
+        myLocationLayer.enableMyLocation()
+        myLocationLayer.enableFollowLocation()
+        myLocationLayer.runOnFirstFix{
+            binding.map.overlays.clear()
+            binding.map.overlays.add(myLocationLayer)
+            binding.map.overlays.add(polyLine)
+        }
     }
 
 
 
 
 
-
+    private fun instanceMainViewModel() = with(binding){
+        mainViewModel.locationDataLive.observe(viewLifecycleOwner){
+            val distance = "Distance: ${String.format("%.1f", it.distance)} m"
+            val velocity = "Velocity: ${String.format("%.1f", 3.6 * it.velocity)} km/h"
+            val averageVelocity = "Average velocity: ${getAverageSpeed(it.distance)} km/h"
+            tvDistance.text = distance
+            tvVelocity.text = velocity
+            tvVelocity.text = averageVelocity
+            isServiceWorkingWhenOpenApplication(it.markersGeoPointList)
+        }
+    }
+    private fun getAverageSpeed(distance: Float): String {
+        return String.format("%.1f", 3.6f * (distance / ((System.currentTimeMillis() - launchTimeMyTrail) / 1000.0f)))
+    }
 
 
 
@@ -167,7 +233,7 @@ class MainFragment : Fragment() {
     }
 
     private fun updateTextViewTimer() {
-        mutableTimerDataView.observe(viewLifecycleOwner) { timeNow ->
+        mainViewModel.mutableTimerDataView.observe(viewLifecycleOwner) { timeNow ->
             binding.tvTime.text = timeNow
         }
     }
@@ -179,7 +245,7 @@ class MainFragment : Fragment() {
         launchTimeMyTrail = WalkingService.launchTime
         timer?.schedule(object : TimerTask(){
             override fun run() {
-               activity?.runOnUiThread{ mutableTimerDataView.value = showCurrentTimeInTimer() }
+               activity?.runOnUiThread{ mainViewModel.mutableTimerDataView.value = showCurrentTimeInTimer() }
             }
         }, 1, 1)
     }
@@ -199,20 +265,7 @@ class MainFragment : Fragment() {
 
 
 
-    private fun getMyLocationProvider(): GpsMyLocationProvider {
-       val myLocationProvider = GpsMyLocationProvider(activity)
-        return myLocationProvider
-    }
 
-    private fun getMyLocationWithMarkerLayer() {
-        val myLocationLayer = MyLocationNewOverlay(getMyLocationProvider(), binding.map)
-        myLocationLayer.enableMyLocation()
-        myLocationLayer.enableFollowLocation()
-        myLocationLayer.runOnFirstFix{
-            binding.map.overlays.clear()
-            binding.map.overlays.add(myLocationLayer)
-        }
-    }
 
 
     private fun registerCallbackPermissions()  {
@@ -269,8 +322,21 @@ class MainFragment : Fragment() {
 
 
 
+    private fun registerReceiver() {
+        val filter = IntentFilter(WalkingService.BROADCAST_KEY_REZERVATION_INTENT_NAME)
+        LocalBroadcastManager.getInstance(activity as AppCompatActivity).registerReceiver(receiver, filter)
+    }
 
 
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            if (intent?.action == WalkingService.BROADCAST_KEY_REZERVATION_INTENT_NAME) {
+                val locModel =
+                    intent.getSerializableExtra(WalkingService.BROADCAST_KEY_REZERVATION_INTENT_DATA) as LocationModel
+                mainViewModel.locationDataLive.value = locModel
+            }
+        }
+    }
 
 
 

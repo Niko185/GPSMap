@@ -19,14 +19,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.MutableLiveData
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.gpsmap.R
+import com.example.gpsmap.database.entity.TrailModel
+import com.example.gpsmap.database.instance.MainDataBaseInstanceInitialization
 import com.example.gpsmap.databinding.FragmentMainBinding
 import com.example.gpsmap.models.LocationModel
 import com.example.gpsmap.service.WalkingService
 import com.example.gpsmap.utils.checkPermission
-import com.example.gpsmap.utils.dialog.DialogGps
+import com.example.gpsmap.utils.dialog.DialogManager
 import com.example.gpsmap.utils.showErrorLog
 import com.example.gpsmap.utils.showToast
 import com.example.gpsmap.utils.time.TimeManager
@@ -47,7 +48,11 @@ class MainFragment : Fragment() {
     private lateinit var permissionLauncherDialog : ActivityResultLauncher<Array<String>>
     private var polyLine: Polyline? = null
     private var firstStart: Boolean = true
-    private val mainViewModel: MainViewModel by activityViewModels()
+   /* private var trailItemModel: TrailItemModel? = null*/
+   private var locationModel: LocationModel? = null
+    private val mainViewModel: MainViewModel by activityViewModels{
+        MainViewModel.MainViewModelFactory((requireContext().applicationContext as MainDataBaseInstanceInitialization).dataBaseInstanceInitialization)
+    }
 
 
     override fun onCreateView(
@@ -144,17 +149,26 @@ class MainFragment : Fragment() {
 
     private fun instanceMainViewModel() = with(binding){
         mainViewModel.locationDataLive.observe(viewLifecycleOwner){
-            val distance = "Distance: ${String.format("%.1f", it.distance)} m"
-            val velocity = "Velocity: ${String.format("%.1f", 3.6 * it.velocity)} km/h"
+            val distance = "Distance: ${String.format("%.1f", it.distance / 1000)} km"
+            val actionVelocity = "Action Velocity: ${String.format("%.1f", 3.6f * it.velocity)} km/h"
             val averageVelocity = "Average velocity: ${getAverageSpeed(it.distance)} km/h"
             tvDistance.text = distance
-            tvVelocity.text = velocity
-            tvVelocity.text = averageVelocity
+            tvActionVelocity.text = actionVelocity
+            tvAvarageVelocity.text = averageVelocity
+            locationModel = it
             isServiceWorkingWhenOpenApplication(it.markersGeoPointList)
         }
     }
     private fun getAverageSpeed(distance: Float): String {
         return String.format("%.1f", 3.6f * (distance / ((System.currentTimeMillis() - launchTimeMyTrail) / 1000.0f)))
+    }
+
+    private fun geoPointsToString(list: List<GeoPoint>): String {
+        val stringBuilder = StringBuilder()
+        list.forEach {
+            stringBuilder.append("${it.latitude}, ${it.longitude} / ")
+        }
+         return stringBuilder.toString()
     }
 
 
@@ -189,8 +203,27 @@ class MainFragment : Fragment() {
             startWalkingService()
         } else {
             stopWalkingService()
+            val trailModel = getTrailItem()
+            DialogManager.showSaveDialog(requireContext(), trailModel, object : DialogManager.Listener{
+                override fun onClickDialogButton() {
+                    mainViewModel.insertTrailModelInDatabase(trailModel)
+                }
+
+            })
         }
         isServiceNowRunning = !isServiceNowRunning
+    }
+
+    private fun getTrailItem(): TrailModel {
+         return  TrailModel(
+                id = null,
+                time = showCurrentTimeInTimer(),
+                date = TimeManager.getDate(),
+                averageVelocity = getAverageSpeed(locationModel?.distance ?: 0.0f),
+                actionVelocity = String.format("%.1f", 3.6 * locationModel?.velocity!!),
+                distance = String.format("%.1f", locationModel?.distance?.div(1000) ?: 0),
+                geoPoints = geoPointsToString(locationModel?.markersGeoPointList ?: listOf())
+            )
     }
 
     private fun onClicks() : View.OnClickListener = with(binding) {
@@ -312,7 +345,7 @@ class MainFragment : Fragment() {
         val locationManager = activity?.getSystemService(Context.LOCATION_SERVICE) as LocationManager
         val isEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
         if(!isEnabled) {
-            DialogGps.showGpsDialog(activity as AppCompatActivity, object : DialogGps.Listener {
+            DialogManager.showGpsDialog(activity as AppCompatActivity, object : DialogManager.Listener {
                 override fun onClickDialogButton() {
                     startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                 }

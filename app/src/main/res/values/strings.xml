@@ -15,6 +15,9 @@
     <string name="gps_button_negative">No</string>
     <string name="location_request_not_enable">You must provide permission to use the location</string>
     <string name="walking_service_enable">Record trail enable</string>
+    <string name="dialog_save_title">Save this trail?</string>
+    <string name="button_save_dialog">Save</string>
+    <string name="button_cancel_dialog">Cancel</string>
 
 
 </resources>

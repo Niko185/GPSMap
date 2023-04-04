@@ -102,7 +102,7 @@ class WalkingService : Service() {
 
         locationRequest = LocationRequest.create()
         locationRequest.interval = 7000
-        locationRequest.fastestInterval = 5000
+        locationRequest.fastestInterval = 4000
         locationRequest.priority = Priority.PRIORITY_HIGH_ACCURACY
     }
 
@@ -117,7 +117,7 @@ class WalkingService : Service() {
     private fun getWalkingDistance(locationResult: LocationResult) {
         val currentLocationPhone = locationResult.lastLocation
         if (lastLocation != null && currentLocationPhone != null) {
-            if (currentLocationPhone.speed >= 0.3) distance = distance + lastLocation?.distanceTo(currentLocationPhone)!!
+            if (currentLocationPhone.speed >= 0.0/*1.2*/) distance = distance + lastLocation?.distanceTo(currentLocationPhone)!!
             geoPointList.add(GeoPoint(currentLocationPhone.latitude, currentLocationPhone.longitude))
             val locModel = LocationModel(
                 currentLocationPhone.speed,

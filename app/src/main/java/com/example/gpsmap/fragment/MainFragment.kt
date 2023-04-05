@@ -72,6 +72,7 @@ class MainFragment : Fragment() {
         updateTextViewTimer()
         registerReceiver()
         instanceMainViewModel()
+
     }
 
     override fun onResume() {
@@ -157,6 +158,7 @@ class MainFragment : Fragment() {
             tvAvarageVelocity.text = averageVelocity
             locationModel = it
             isServiceWorkingWhenOpenApplication(it.markersGeoPointList)
+            showErrorLog("AAAAAAAAAAAAAAAAAAAAAAA", "${it.distance} fdfdsfsfdsfdsfsddsfdsffdsfdfsd")
         }
     }
     private fun getAverageSpeed(distance: Float): String {

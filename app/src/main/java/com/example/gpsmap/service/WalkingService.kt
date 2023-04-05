@@ -18,6 +18,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import com.example.gpsmap.R
 import com.example.gpsmap.activity.MainActivity
 import com.example.gpsmap.models.LocationModel
+import com.example.gpsmap.utils.showErrorLog
 import com.example.gpsmap.vm.MainViewModel
 import com.google.android.gms.location.*
 import org.osmdroid.util.GeoPoint
@@ -124,6 +125,7 @@ class WalkingService : Service() {
                 distance,
                 geoPointList
                 )
+            Log.e("AAAAAAAAAA", "distance: $distance")
             sendServiceDataOnFragment(locModel)
         } else
             lastLocation = currentLocationPhone

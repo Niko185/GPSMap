@@ -10,6 +10,7 @@ import android.location.LocationManager
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -20,6 +21,7 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.activityViewModels
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import androidx.preference.PreferenceManager
 import com.example.gpsmap.R
 import com.example.gpsmap.database.entity.TrailModel
 import com.example.gpsmap.database.instance.MainDataBaseInstanceInitialization
@@ -48,8 +50,8 @@ class MainFragment : Fragment() {
     private lateinit var permissionLauncherDialog : ActivityResultLauncher<Array<String>>
     private var polyLine: Polyline? = null
     private var firstStart: Boolean = true
-   /* private var trailItemModel: TrailItemModel? = null*/
-   private var locationModel: LocationModel? = null
+    private lateinit var myLocationLayer: MyLocationNewOverlay
+    private var locationModel: LocationModel? = null
     private val mainViewModel: MainViewModel by activityViewModels{
         MainViewModel.MainViewModelFactory((requireContext().applicationContext as MainDataBaseInstanceInitialization).dataBaseInstanceInitialization)
     }
@@ -78,6 +80,7 @@ class MainFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         checkPermissionForAllVersion()
+        firstStart = true
     }
 
     override fun onDetach() {
@@ -101,13 +104,15 @@ class MainFragment : Fragment() {
 
     private fun initPolyline(){
         polyLine = Polyline()
-        polyLine?.outlinePaint?.color = Color.BLUE
+        polyLine?.outlinePaint?.color =  Color.parseColor(
+            PreferenceManager.getDefaultSharedPreferences(requireContext()).getString("color_key", "#FF000000", )
+        )
 
 
     }
 
     private fun addPoint(list: List<GeoPoint>) {
-        polyLine?.addPoint(list[list.size - 1])
+       if(list.isNotEmpty()) polyLine?.addPoint(list[list.size - 1])
     }
 
     private fun fillPolyline(list: List<GeoPoint>){
@@ -134,13 +139,14 @@ class MainFragment : Fragment() {
     }
 
     private fun getMyLocationWithMarkerLayer() {
-        val myLocationLayer = MyLocationNewOverlay(getMyLocationProvider(), binding.map)
+        myLocationLayer = MyLocationNewOverlay(getMyLocationProvider(), binding.map)
         myLocationLayer.enableMyLocation()
         myLocationLayer.enableFollowLocation()
         myLocationLayer.runOnFirstFix{
             binding.map.overlays.clear()
-            binding.map.overlays.add(myLocationLayer)
             binding.map.overlays.add(polyLine)
+            binding.map.overlays.add(myLocationLayer)
+
         }
     }
 
@@ -150,7 +156,7 @@ class MainFragment : Fragment() {
 
     private fun instanceMainViewModel() = with(binding){
         mainViewModel.locationDataLive.observe(viewLifecycleOwner){
-            val distance = "Distance: ${String.format("%.1f", it.distance / 1000)} km"
+            val distance = "Distance: ${String.format("%.1f", it.distance)} m"
             val actionVelocity = "Action Velocity: ${String.format("%.1f", 3.6f * it.velocity)} km/h"
             val averageVelocity = "Average velocity: ${getAverageSpeed(it.distance)} km/h"
             tvDistance.text = distance
@@ -158,7 +164,7 @@ class MainFragment : Fragment() {
             tvAvarageVelocity.text = averageVelocity
             locationModel = it
             isServiceWorkingWhenOpenApplication(it.markersGeoPointList)
-            showErrorLog("AAAAAAAAAAAAAAAAAAAAAAA", "${it.distance} fdfdsfsfdsfdsfsddsfdsffdsfdfsd")
+
         }
     }
     private fun getAverageSpeed(distance: Float): String {
@@ -168,7 +174,7 @@ class MainFragment : Fragment() {
     private fun geoPointsToString(list: List<GeoPoint>): String {
         val stringBuilder = StringBuilder()
         list.forEach {
-            stringBuilder.append("${it.latitude}, ${it.longitude} / ")
+            stringBuilder.append("${it.latitude},${it.longitude}/")
         }
          return stringBuilder.toString()
     }
@@ -232,6 +238,7 @@ class MainFragment : Fragment() {
         return View.OnClickListener {
             when(it.id) {
                 fButtonStartStop.id -> controllingWalkingService()
+                fButtonMyLocation.id -> centerLocation()
             }
         }
     }
@@ -239,6 +246,12 @@ class MainFragment : Fragment() {
     private fun setOnClicks() = with(binding ) {
         val onClicks = onClicks()
         fButtonStartStop.setOnClickListener(onClicks)
+        fButtonMyLocation.setOnClickListener(onClicks)
+    }
+
+    private fun centerLocation(){
+        binding.map.controller.animateTo(myLocationLayer.myLocation)
+        myLocationLayer.enableFollowLocation()
     }
 
     private fun setImageStop() {

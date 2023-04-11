@@ -8,11 +8,14 @@ import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gpsmap.adapter.TrailsAdapter
+import com.example.gpsmap.database.entity.TrailModel
 import com.example.gpsmap.database.instance.MainDataBaseInstanceInitialization
 import com.example.gpsmap.databinding.FragmentTrailsBinding
+import com.example.gpsmap.utils.openFragment
 import com.example.gpsmap.vm.MainViewModel
 
-class TrailsFragment : Fragment() {
+
+class TrailsFragment() : Fragment(), TrailsAdapter.Listener {
     private lateinit var binding: FragmentTrailsBinding
     private lateinit var myAdapter: TrailsAdapter
     private val mainViewModel: MainViewModel by activityViewModels{
@@ -34,7 +37,7 @@ class TrailsFragment : Fragment() {
     }
 
     private fun initRecyclerView() = with(binding) {
-        myAdapter = TrailsAdapter()
+        myAdapter = TrailsAdapter(this@TrailsFragment)
         rcView.layoutManager = LinearLayoutManager(requireContext())
         rcView.adapter = myAdapter
     }
@@ -49,5 +52,17 @@ class TrailsFragment : Fragment() {
 
         @JvmStatic
         fun newInstance() = TrailsFragment()
+    }
+
+    override fun onClick(model: TrailModel, clickType: TrailsAdapter.ClickType ) {
+      when(clickType){
+          TrailsAdapter.ClickType.OPEN -> {
+              mainViewModel.savedTrail.value = model
+              openFragment(DetailedTrailsFragment.newInstance())
+          }
+          TrailsAdapter.ClickType.DELETE -> {
+              mainViewModel.deleteTrailModelFromDatabase(model)
+          }
+      }
     }
 }

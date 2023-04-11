@@ -10,9 +10,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface Dao {
-    @Insert
-    suspend fun insertTrailModelInDatabase(trailModel: TrailModel)
-
     @Query(value = "SELECT * FROM saved_trails")
     fun getAllSavedTrails(): Flow<List<TrailModel>>
+
+    @Insert
+    suspend fun insertTrailModelInDatabase(trailModel: TrailModel)
+    @Delete
+    suspend fun deleteTrailModelFromDatabase(trailModel: TrailModel)
 }

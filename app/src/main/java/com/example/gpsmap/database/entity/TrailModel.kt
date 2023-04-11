@@ -27,6 +27,6 @@ data class TrailModel(
     val distance: String,
 
     @ColumnInfo(name = "geopoints_trail")
-    val geoPoints: String
+    val geoPoints: String,
 
 ): Serializable

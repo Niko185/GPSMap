@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/cvTrailItem"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="4dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginEnd="4dp"
+    app:cardCornerRadius="16dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/tvDateItem"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="8dp"
+            android:text="10/10/2022 14:00"
+            android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvDistanceItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="5.5 km"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/tvDateItem" />
+
+        <ImageView
+            android:id="@+id/imageViewVelocityItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="@+id/tvDateItem"
+            app:layout_constraintTop_toBottomOf="@+id/tvDateItem"
+            app:srcCompat="@drawable/ic_velocity" />
+
+        <TextView
+            android:id="@+id/tvAverageVelocityItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Avarage velocity: 3.5 km/h"
+            app:layout_constraintBottom_toBottomOf="@+id/imageViewVelocityItem"
+            app:layout_constraintStart_toEndOf="@+id/imageViewVelocityItem"
+            app:layout_constraintTop_toTopOf="@+id/imageViewVelocityItem" />
+
+        <ImageView
+            android:id="@+id/imageViewTimeItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="@+id/imageViewVelocityItem"
+            app:layout_constraintTop_toBottomOf="@+id/imageViewVelocityItem"
+            app:srcCompat="@drawable/ic_tiime" />
+
+        <TextView
+            android:id="@+id/tvTimeItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="Time: 00:10:00"
+            app:layout_constraintBottom_toBottomOf="@+id/imageViewTimeItem"
+            app:layout_constraintStart_toEndOf="@+id/imageViewTimeItem"
+            app:layout_constraintTop_toTopOf="@+id/imageViewTimeItem" />
+
+        <ImageButton
+            android:id="@+id/imageButtonDeleteItem"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            app:layout_constraintBottom_toBottomOf="@+id/imageViewTimeItem"
+            app:layout_constraintEnd_toEndOf="@+id/tvDistanceItem"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="@+id/tvDistanceItem"
+            app:layout_constraintTop_toBottomOf="@+id/tvDistanceItem"
+            app:layout_constraintVertical_bias="1.0"
+            app:srcCompat="@drawable/ic_delete" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>

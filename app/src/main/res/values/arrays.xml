@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="location_time_update_name">
+        <item>Update every 3 second</item>
+        <item>Update every 5 second</item>
+        <item>Update every 10 second</item>
+    </string-array>
+
+    <string-array name="location_time_update_value"> <!-- Millisecond value -->
+        <item>3000</item>
+        <item>5000</item>
+        <item>10000</item>
+    </string-array>
+
+    <string-array name="color_name">
+        <item>Black</item>
+        <item>Green</item>
+        <item>Blue</item>
+    </string-array>
+
+    <string-array name="color_value">
+        <item>#FF000000</item>
+        <item>#4CAF50</item>
+        <item>#2196F3</item>
+    </string-array>
+
+</resources>

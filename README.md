@@ -1,6 +1,7 @@
 # GPSMap
 Educational project. 
 - includes a map for tracking the route
+- include working in the background and notification
 ## Preview
 <div style="display: flex; flex-wrap: wrap;">
   <img src="https://www.dropbox.com/s/l480yd482uop4zi/gps_main_screen.jpg?raw=1" width="198" height="auto"/>

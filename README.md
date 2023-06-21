@@ -19,5 +19,5 @@ Educational project.
 - SharedPreferences
 
 ## Additional features 
-- integration OpenStreetMap 
-- realization Polyline
+- Integration OpenStreetMap 
+- Realization Polyline

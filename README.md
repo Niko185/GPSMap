@@ -13,6 +13,7 @@ Educational project.
 
 ## Technologies stack
 - Kotlin
+- Git
 - Room
 - Fragments
 - ViewModel & LiveData

@@ -32,7 +32,6 @@ class WalkingService : Service() {
     private lateinit var locationRequest: LocationRequest
     private lateinit var geoPointList: ArrayList<GeoPoint>
 
-
     override fun onBind(p0: Intent?): IBinder? {
         return null
     }
@@ -55,16 +54,6 @@ class WalkingService : Service() {
         isRunningService = false
         locationProvider.removeLocationUpdates(locationCallback)
     }
-
-
-
-
-
-
-
-
-
-
 
      private fun setNotificationWalkingService() {
 
@@ -89,7 +78,6 @@ class WalkingService : Service() {
         startForeground(99, myNotification)
     }
 
-
     private fun setUpdatesLocationInformation() {
         // if not permission location -> not action, else get information
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -97,7 +85,6 @@ class WalkingService : Service() {
         } else
             locationProvider.requestLocationUpdates(locationRequest, locationCallback, Looper.myLooper())
     }
-
 
     private fun initLocationProvider(){
         val updateInterval = PreferenceManager.getDefaultSharedPreferences(this).getString("time_update_key", "3000")?.toLong() ?: 3000
@@ -134,28 +121,11 @@ class WalkingService : Service() {
            }
        }
 
-
-
-
-
     private fun sendServiceDataOnFragment(locationModel: LocationModel) {
         val intent = Intent(BROADCAST_KEY_REZERVATION_INTENT_NAME)
         intent.putExtra(BROADCAST_KEY_REZERVATION_INTENT_DATA, locationModel)
         LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(intent)
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     companion object{
         const val CHANNEL_ID_SERVICE = "Channel_1"
@@ -164,7 +134,6 @@ class WalkingService : Service() {
         const val STATUS_SERVICE = NotificationManager.IMPORTANCE_DEFAULT
         const val BROADCAST_KEY_REZERVATION_INTENT_NAME = "location_model_intent"
         const val BROADCAST_KEY_REZERVATION_INTENT_DATA = "location_model_intent_data"
-
         var isRunningService = false
         var launchTime = 0L
     }

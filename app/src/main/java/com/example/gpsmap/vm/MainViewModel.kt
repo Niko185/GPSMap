@@ -19,7 +19,6 @@ class MainViewModel(mainDataBase: MainDataBase) : ViewModel() {
     val mutableTimerDataView = MutableLiveData<String>()
     val locationDataLive = MutableLiveData<LocationModel>()
     val savedTrail = MutableLiveData<TrailModel>()
-
     val allTrails = getDao.getAllSavedTrails().asLiveData()
 
     fun insertTrailModelInDatabase(trailModel: TrailModel) = viewModelScope.launch {
@@ -29,13 +28,6 @@ class MainViewModel(mainDataBase: MainDataBase) : ViewModel() {
     fun deleteTrailModelFromDatabase(trailModel: TrailModel) = viewModelScope.launch {
         getDao.deleteTrailModelFromDatabase(trailModel)
     }
-
-
-
-
-
-
-
 
     class MainViewModelFactory(private val mainDataBase: MainDataBase) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {

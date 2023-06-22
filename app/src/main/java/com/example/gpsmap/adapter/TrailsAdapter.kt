@@ -12,16 +12,6 @@ import com.example.gpsmap.databinding.TrailItemBinding
 
 class TrailsAdapter(private val listener: Listener) : ListAdapter<TrailModel, TrailsAdapter.ItemHolder>(ItemComparator()){
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.trail_item, parent, false)
-        return ItemHolder(view, listener)
-    }
-
-    override fun onBindViewHolder(holder: ItemHolder, position: Int) {
-        holder.setData(getItem(position))
-    }
-
-
     class ItemHolder(view: View, private val listener: Listener): RecyclerView.ViewHolder(view), View.OnClickListener {
         private val binding = TrailItemBinding.bind(view)
         private var trailModelTemp: TrailModel? = null
@@ -33,23 +23,11 @@ class TrailsAdapter(private val listener: Listener) : ListAdapter<TrailModel, Tr
         fun setData(trailModel: TrailModel) = with(binding) {
             trailModelTemp = trailModel
             tvDateItem.text = trailModel.date
-            tvDistanceItem.text = trailModel.distance
+            tvDistanceItem.text = "${trailModel.distance} km"
             tvTimeItem.text = trailModel.time
-            tvAverageVelocityItem.text= trailModel.averageVelocity
+            tvAverageVelocityItem.text= "Avarage velocity: ${trailModel.averageVelocity} km/h"
         }
 
-
-        // view - это нажатое view(view на которое мы нажали) - имеено отдельное view внутри item
-        // Variant 1
-        /*override fun onClick(view: View) {
-            when(view.id) {
-           R.id.cvTrailItem -> trailModelTemp?.let { listener.onClick(it, ClickType.OPEN) }
-           R.id.imageButtonDeleteItem -> trailModelTemp?.let { listener.onClick(it, ClickType.DELETE) }
-            }
-        }
-    }*/
-
-        // Variant 2
         override fun onClick(view: View) {
            val type = when(view.id) {
                 R.id.cvTrailItem -> ClickType.OPEN
@@ -59,7 +37,6 @@ class TrailsAdapter(private val listener: Listener) : ListAdapter<TrailModel, Tr
             trailModelTemp?.let { listener.onClick(it, type) }
         }
     }
-
 
     class ItemComparator() : DiffUtil.ItemCallback<TrailModel>(){
         override fun areItemsTheSame(oldItem: TrailModel, newItem: TrailModel): Boolean {
@@ -71,6 +48,15 @@ class TrailsAdapter(private val listener: Listener) : ListAdapter<TrailModel, Tr
         }
     }
 
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ItemHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.trail_item, parent, false)
+        return ItemHolder(view, listener)
+    }
+
+    override fun onBindViewHolder(holder: ItemHolder, position: Int) {
+        holder.setData(getItem(position))
+    }
+
     interface Listener {
         fun onClick(model: TrailModel, clickType: ClickType)
     }
@@ -79,6 +65,4 @@ class TrailsAdapter(private val listener: Listener) : ListAdapter<TrailModel, Tr
         DELETE,
         OPEN
     }
-
-
 }

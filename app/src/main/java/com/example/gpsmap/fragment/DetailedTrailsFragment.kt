@@ -56,9 +56,9 @@ class DetailedTrailsFragment() : Fragment() {
     private fun getTrack() = with(binding ){
         mainViewModel.savedTrail.observe(viewLifecycleOwner) {
             tvTime.text = it.time
-            tvDistance.text = it.distance
+            tvDistance.text = "Distance: ${it.distance} km"
             tvDate.text = it.date
-            tvAvarageVelocity.text = it.averageVelocity
+            tvAvarageVelocity.text = "Avarage velocity: ${it.averageVelocity} km/h"
 
             var polylined = getPolyline(it.geoPoints)
             map.overlays.add(polylined)

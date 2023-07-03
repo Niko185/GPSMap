@@ -17,7 +17,7 @@ Educational project.
 - Room
 - Fragments
 - ViewModel & LiveData
-- BroadcastReceiver
+- Service
 - Google Play Services Location API 
 - SharedPreferences
 
